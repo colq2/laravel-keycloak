@@ -13,7 +13,7 @@ class KeycloakGateway implements Gateway
      * A guzzle client
      * @var Client $httpClient
      */
-    private $httpClient;
+    protected $httpClient;
 
     /**
      * @var array $guzzle
@@ -78,7 +78,7 @@ class KeycloakGateway implements Gateway
         $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
 
         $response = $this->getHttpClient()
-            ->post($url, [
+            ->post($this->getTokenUrl(), [
                 'headers' => [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/x-www-form-urlencoded',
