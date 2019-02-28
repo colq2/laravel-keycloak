@@ -4,6 +4,7 @@ namespace colq2\Keycloak;
 
 use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\TokenStorage;
+use colq2\Keycloak\Contracts\UserService;
 
 class KeycloakAuthenticator implements Authenticator
 {
@@ -22,10 +23,10 @@ class KeycloakAuthenticator implements Authenticator
     /**
      * Create a new Authentication handler for keycloak authentication.
      *
-     * @param \colq2\Keycloak\KeycloakUserService $keycloakUserService
+     * @param UserService $keycloakUserService
      * @param \colq2\Keycloak\Contracts\TokenStorage $tokenStorage
      */
-    public function __construct(KeycloakUserService $keycloakUserService, TokenStorage $tokenStorage)
+    public function __construct(UserService $keycloakUserService, TokenStorage $tokenStorage)
     {
         $this->keycloakUserService = $keycloakUserService;
         $this->tokenStorage = $tokenStorage;

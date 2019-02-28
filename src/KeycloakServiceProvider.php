@@ -12,8 +12,10 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Lcobucci\JWT\Token;
+use Nexmo\User\User;
 
 class KeycloakServiceProvider extends ServiceProvider
 {
@@ -43,7 +45,7 @@ class KeycloakServiceProvider extends ServiceProvider
                 $app->make(TokenStorage::class),
                 $app->make(TokenChecker::class),
                 $app->make(TokenFinder::class),
-                new KeycloakUserService(),
+                $app->make(UserService::class),
                 $app->make(Gateway::class)
             );
         });
@@ -64,13 +66,13 @@ class KeycloakServiceProvider extends ServiceProvider
     {
         $this->app->singleton(UserService::class, function(Container $app) {
             return new KeycloakUserService(
-                config('keycloak.model')
+                $app['config']->get('keycloak.model', KeycloakUser::class)
             );
         });
 
         $this->app->bind(Authenticator::class, function (Container $app) {
             return new KeycloakAuthenticator(
-                $app->make(KeycloakUserService::class),
+                $app->make(UserService::class),
                 $app->make(TokenStorage::class)
             );
         });
