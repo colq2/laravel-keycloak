@@ -79,12 +79,14 @@ class KeycloakGuard implements Guard
         $accessToken = $this->tokenFinder->findAccessToken();
 
         // 2. Check if the access token is valid
-        if(! $this->checkToken($accessToken))
+        if(! $this->tokenChecker->checkToken($accessToken))
         {
             // 3. If it's not, try to refresh it
             // TODO refresh token
             if(! $this->refreshToken()){
-                // 4. If this fails throw an exception
+                // 4. If this fails we quit
+                $this->tokenStorage->empty();
+
                 return null;
             }
 
@@ -98,10 +100,15 @@ class KeycloakGuard implements Guard
         // 6. If an id token was found, get a user by this token
         // 7. Else get a user by the access token
         if(empty($idToken)){
-            $idToken = $accessToken;
+            $user = $this->userService->getKeycloakUserByToken($accessToken);
+        }else{
+            if(!$this->tokenChecker->checkIdToken($idToken)){
+                $this->tokenStorage->empty();
+            }
+
+            $user = $this->userService->getKeycloakUserByToken($idToken);
         }
 
-        $user = $this->userService->getKeycloakUserByToken($idToken);
 
         // 8. Return the  user
         return $this->user = $user;
@@ -126,14 +133,13 @@ class KeycloakGuard implements Guard
 
     /**
      * Check if the token is valid
-     * TODO: compare with oidc specs
      *
      * @param $token
      * @return bool
      */
     protected function checkToken($token)
     {
-        if (KeycloakTokenChecker::checkIdToken($token)) {
+        if ($this) {
             return true;
         }
 
@@ -171,7 +177,7 @@ class KeycloakGuard implements Guard
 
         $tokens = $this->gateway->getRefreshTokenResponse($refreshToken);
 
-
+//        $this->tokenStorage->storeAll();
 
         // TODO: Implement refresh tokens
         return false;
