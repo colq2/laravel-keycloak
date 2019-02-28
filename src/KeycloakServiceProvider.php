@@ -7,6 +7,7 @@ use colq2\Keycloak\Contracts\Gateway;
 use colq2\Keycloak\Contracts\TokenChecker;
 use colq2\Keycloak\Contracts\TokenFinder;
 use colq2\Keycloak\Contracts\TokenStorage;
+use colq2\Keycloak\Contracts\UserService;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
@@ -61,7 +62,7 @@ class KeycloakServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(KeycloakUserService::class, function(Container $app) {
+        $this->app->singleton(UserService::class, function(Container $app) {
             return new KeycloakUserService(
                 config('keycloak.model')
             );
