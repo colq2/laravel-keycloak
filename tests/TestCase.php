@@ -76,13 +76,13 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ]);
 
         $app['config']->set('keycloak', [
-            'model' => env('KEYCLOAK_USER_MODEL'),
+            'model' => env('KEYCLOAK_USER_MODEL', KeycloakUser::class),
             'client_id' => env('KEYCLOAK_CLIENT_ID'),
             'client_secret' => env('KEYCLOAK_CLIENT_SECRET'),
             'redirect' => env('KEYCLOAK_REDIRECT'),
             'realm' => env('KEYCLOAK_REALM'),
             'base_url' => env('KEYCLOAK_BASE_URL'),
-            'test_integration' => env('TEST_INTEGRATION'),
+            'test_integration' => env('TEST_INTEGRATION', false),
         ]);
     }
 

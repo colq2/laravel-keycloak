@@ -158,7 +158,7 @@ class KeycloakProvider extends AbstractProvider implements ProviderInterface
     public function getUserService(): UserService
     {
         if (is_null($this->userService)) {
-            $this->userService = app()->make($this->userService);
+            $this->userService = app()->make(UserService::class);
         }
         return $this->userService;
     }
