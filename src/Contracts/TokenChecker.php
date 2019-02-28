@@ -10,5 +10,11 @@ interface TokenChecker
      * @param $token
      * @return bool
      */
-    public function checkToken($token): bool;
+    public function checkIdToken($token): bool;
+
+    /**
+     * @param $token
+     * @return mixed
+     */
+    public function checkToken($token);
 }

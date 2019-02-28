@@ -23,6 +23,24 @@ class KeycloakTokenChecker implements TokenChecker
     }
 
     /**
+     * @param $token
+     * @return bool
+     */
+    public function checkToken($token)
+    {
+        // Parse token if it is not a \Lcobucci\JWT token
+        if (!$token instanceof Token) {
+            try {
+                $token = (new Parser)->parse($token);
+            } catch (\Exception $e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Check token if it valid and not expired
      * Validation is done by specs of openid connect
      * @See https://openid.net/specs/openid-connect-core-1_0.html
@@ -31,7 +49,7 @@ class KeycloakTokenChecker implements TokenChecker
      * @param $token
      * @return bool
      */
-    public function checkToken($token): bool
+    public function checkIdToken($token): bool
     {
         // Todo: Decrypt token
 

@@ -75,7 +75,9 @@ class KeycloakServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(TokenFinder::class, function () {
-            return new KeycloakTokenFinder();
+            return new KeycloakTokenFinder(
+                $this->app->make(TokenStorage::class)
+            );
         });
 
         $this->app->bind(TokenStorage::class, function (Container $app) {

@@ -79,14 +79,14 @@ class TokenCheckerTest extends TestCase
     public function testCheckFailsOnNonce(){
         $token = 'AAAA';
 
-        $this->assertFalse($this->checker->checkToken($token));
+        $this->assertFalse($this->checker->checkIdToken($token));
     }
 
     public function testCheckIsSuccessful()
     {
         $this->buildToken();
 
-        $this->assertTrue($this->checker->checkToken($this->token));
+        $this->assertTrue($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckIsSuccessfulOnSetAzp()
@@ -98,14 +98,14 @@ class TokenCheckerTest extends TestCase
     {
         $this->setDataAndBuildToken(['iss' => 'AAAA']);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsOnSingleAndWrongAudience()
     {
         $this->setDataAndBuildToken(['aud' => 'AAAA']);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckIsSuccessfulOnMultipleAudience ()
@@ -117,7 +117,7 @@ class TokenCheckerTest extends TestCase
             'azp' => config('keycloak.client_id')
         ]);
 
-        $this->assertTrue($this->checker->checkToken($this->token));
+        $this->assertTrue($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsOnMultipleAudienceWhenNoAzpIsSet()
@@ -128,7 +128,7 @@ class TokenCheckerTest extends TestCase
             'aud' => [config('keycloak.client_id'), 'test_audience'],
         ]);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsOnMultipleAudienceWhenWrongAzpIsSet()
@@ -140,7 +140,7 @@ class TokenCheckerTest extends TestCase
             'azp' => 'AAAA'
         ]);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsWhenWrongAzpIsSet()
@@ -149,7 +149,7 @@ class TokenCheckerTest extends TestCase
             'azp' => 'AAAA',
         ]);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsWhenTokenIsSignedWithWrongKey()
@@ -160,14 +160,14 @@ class TokenCheckerTest extends TestCase
 
         $this->buildToken();
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsWhenServerUserAnotherSignerAlgorithm()
     {
         $this->signerAlgorithm = 'HS256';
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     public function testCheckFailsOnExpiredToken()
@@ -177,7 +177,7 @@ class TokenCheckerTest extends TestCase
            'exp' => time() - 100
         ]);
 
-        $this->assertFalse($this->checker->checkToken($this->token));
+        $this->assertFalse($this->checker->checkIdToken($this->token));
     }
 
     // TODO Test 10 - 13
