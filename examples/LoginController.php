@@ -1,5 +1,7 @@
 <?php
 
+namespace colq2\Keycloak\Examples;
+
 class LoginController extends \Illuminate\Routing\Controller
 {
     /**

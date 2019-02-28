@@ -21,6 +21,17 @@ Publish config and migrations
 
 `php artisan vendor:publish --provider=colq2\Keycloak\KeycloakServiceProvider`
 
+This project redefines the user model and migrations. There is no need for password reset table. Furthermore we need another properties on the user:
+* id
+* sub
+* username
+* name
+* email
+* picture
+
+You can delete all migrations in your laravel project if you want to use keycloak as the only auth possibility.
+
+
 Add following to your .env file:
 
 ```
@@ -76,23 +87,42 @@ Route::get('login', 'LoginController@handleRedirect');
 Route::get('callback', 'LoginController@handleCallback');
 ```
 
-## Update migrations
-This project redefines the user model and migrations. There is no need for password reset table. Furthermore we need another properties on the user:
-* id
-* username
-* name
-* email
-* picture
 
-You can delete all migrations in your laravel project if you want to use keycloak as the only auth possibility.
-You could publish our user migration with
-``php artisan vendor:publish``
-or create your own migration and User.
 
-## Update User Model
-This packages provides a User Model which is quite similar to the provided model by laravel. However, it removes unused dependencies.
-Put the following Code into the User Class in your project.
-Else you can also update this class to your own needs.
+## Custom User
+
+The custom keycloak user saves the properties: id, sub, username, name, email and picture
+
+To customize this you should do three things:
+
+1. Update migration
+2. Update User model
+3. Provide a custom Service
+
+### Update migrations
+
+In the create_user_table migration you can add or remove your needed properties.
+By default you can use all claims that are defined in the openid-connect specs.
+
+```
+ public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('sub')->unique();
+            $table->string('username')->nullable();
+            $table->string('email')->nullable();
+            $table->string('name')->nullable();
+            $table->string('picture')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+```
+
+### Update User Model
+After you defined which properties you need. You have to define the same in the fillable attribute.
+
 
 ```
 <?php
@@ -100,7 +130,7 @@ Else you can also update this class to your own needs.
 namespace App;
 
 use Illuminate\Notifications\Notifiable;
-use colq2\Keycloak\User as Authenticatable;
+use colq2\Keycloak\KeycloakUser as Authenticatable;
 
 class User extends Authenticatable
 {
@@ -112,12 +142,14 @@ class User extends Authenticatable
     protected $table = 'users';
 
     /**
+     *
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'username', 'name', 'email', 'picture'
+        // TODO: Update the fillable 
+        'sub, 'username', 'name', 'email', 'picture'
     ];
 
     /**
@@ -131,4 +163,48 @@ class User extends Authenticatable
 
 }
 
+```
+
+### Provide a custom user service
+
+The openid-connect claims have to be parsed to your custom properties. Just build a new class and extend the default User service.
+Then update the app binding to your user service.
+
+In CustomUserService:
+
+```
+use colq2\Keycloak\KeycloakUserService;
+use colq2\Keycloak\SocialiteOIDCUser;
+
+class CustomUserService extends KeycloakUserService
+{
+
+    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user)
+    {
+        $keycloakUser = (array) $user;
+
+        // DO whatever you need
+
+        // For example
+        $keycloakUser['username'] = $keycloakUser['preferred_username'];
+
+        return $keycloakUser;
+    }
+}
+```
+
+And bind this to your application in AppServiceProvider:
+
+```
+**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->app->singleton(UserService::class, function($app){
+            return new CustomUserService($app['config']->get('keycloak.model'));
+        });
+    }
 ```
