@@ -3,6 +3,7 @@
 namespace colq2\Keycloak\Contracts;
 
 use colq2\Keycloak\KeycloakUser;
+use colq2\Keycloak\SocialiteOIDCUser;
 use Laravel\Socialite\Two\User as SocialiteUser;
 
 interface UserService
@@ -31,6 +32,14 @@ interface UserService
      */
     public function mapUserArrayToSocialiteUser(array $user);
 
+    /**
+     * Transform socialite user to a keycloak user
+     *
+     * @param SocialiteOIDCUser $user
+     * @return array
+     */
+    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user);
+
 
     /**
      * Parse token and get claims out of it
@@ -43,14 +52,14 @@ interface UserService
     /**
      * Find a given user provided by Socialite and update itx
      *
-     * @param \Laravel\Socialite\Two\User $socialiteUser
+     * @param SocialiteOIDCUser $socialiteUser
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function updateOrCreate(SocialiteUser $socialiteUser): KeycloakUser;
+    public function updateOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser;
 
     /**
-     * @param \Laravel\Socialite\Two\User $socialiteUser
+     * @param SocialiteOIDCUser $socialiteUser
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function findOrCreate(SocialiteUser $socialiteUser): KeycloakUser;
+    public function findOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser;
 }

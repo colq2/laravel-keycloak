@@ -18,4 +18,22 @@ class KeycloakUser extends Model implements AuthenticatableContract, Authorizabl
      * @var string
      */
     protected $table = 'users';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'sub', 'username', 'name', 'email', 'picture'
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'remember_token',
+    ];
 }
