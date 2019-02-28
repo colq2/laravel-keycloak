@@ -73,7 +73,6 @@ class KeycloakAuthenticator implements Authenticator
 
     public function authenticateUser(KeycloakUser $user)
     {
-
         auth()
             ->guard('keycloak')
             ->setUser($user);
