@@ -94,6 +94,20 @@ class KeycloakUserService implements UserService
     }
 
     /**
+     * @param SocialiteOIDCUser $user
+     * @return array
+     */
+    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user)
+    {
+        $keycloakUser = (array) $user;
+
+        // We rename preferred_username to username
+        $keycloakUser['username'] = $keycloakUser['preferred_username'];
+
+        return $keycloakUser;
+    }
+
+    /**
      * Parse token and get claims as array out of it
      *
      * @param $token
@@ -137,10 +151,10 @@ class KeycloakUserService implements UserService
     /**
      * Find a given user provided by Socialite and update itx
      *
-     * @param \Laravel\Socialite\Two\User $socialiteUser
+     * @param SocialiteOIDCUser $socialiteUser
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function updateOrCreate(SocialiteUser $socialiteUser): KeycloakUser
+    public function updateOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser
     {
         // Update user (maybe the attribute had changed)
         $user = $this->createModel()
@@ -149,9 +163,8 @@ class KeycloakUserService implements UserService
                 // The unique identifier is the subject, we
                 // have to find the user by it
                 // TODO: Make this editable
-                'sub' => $socialiteUser->getId(),
-                'username' => $socialiteUser['preferred_username']
-            ], (array)$socialiteUser);
+                'sub' => $socialiteUser->getId()
+            ], $this->mapSocialiteUserToKeycloakUser($socialiteUser));
 
         $user->save();
 
@@ -159,16 +172,16 @@ class KeycloakUserService implements UserService
     }
 
     /**
-     * @param \Laravel\Socialite\Two\User $socialiteUser
+     * @param SocialiteOIDCUser $socialiteUser
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function findOrCreate(SocialiteUser $socialiteUser): KeycloakUser
+    public function findOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser
     {
         $user = $this->createModel()
             ->newQuery()
             ->firstOrCreate([
                 'sub' => $socialiteUser->getId(),
-            ], (array)$socialiteUser);
+            ], $this->mapSocialiteUserToKeycloakUser($socialiteUser));
 
         return $user;
     }

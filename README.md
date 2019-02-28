@@ -17,9 +17,27 @@ Feel free to contribute to this.
 # Installation
 `composer require colq2/laravel-keycloak`
 
+Publish config and migrations
+
+`php artisan vendor:publish --provider=colq2\Keycloak\KeycloakServiceProvider`
+
+Add following to your .env file:
+
+```
+KEYCLOAK_USER_MODEL=
+KEYCLOAK_BASE_URL=
+KEYCLOAK_REALM=
+KEYCLOAK_CLIENT_ID=
+KEYCLOAK_CLIENT_SECRET=
+KEYCLOAK_REDIRECT=/callback
+KEYCLOAK_USE_NONCE=false
+KEYCLOAK_NONCE_LIFETIME=600
+KEYCLOAK_MAX_AGE=86400
+```
+
 ## Usage
 
-Write in a Controller:
+Controller:
 
 ```
 <?php
@@ -51,7 +69,8 @@ class LoginController extends \Illuminate\Routing\Controller
 }
 ```
 
-Add routes:
+Routes:
+
 ```
 Route::get('login', 'LoginController@handleRedirect');
 Route::get('callback', 'LoginController@handleCallback');
@@ -98,7 +117,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'username', 'name', 'email', 'avatar'
+        'username', 'name', 'email', 'picture'
     ];
 
     /**
