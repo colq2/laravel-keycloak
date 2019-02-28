@@ -133,7 +133,7 @@ class KeycloakGuard implements Guard
      */
     protected function checkToken($token)
     {
-        if (KeycloakTokenChecker::checkToken($token)) {
+        if (KeycloakTokenChecker::checkIdToken($token)) {
             return true;
         }
 

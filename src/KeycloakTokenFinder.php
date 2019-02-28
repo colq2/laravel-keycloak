@@ -19,7 +19,7 @@ class KeycloakTokenFinder implements TokenFinder
      *
      * @param \colq2\Keycloak\Contracts\TokenStorage|null $tokenStorage
      */
-    public function __construct(TokenStorage $tokenStorage = null)
+    public function __construct(TokenStorage $tokenStorage)
     {
         $this->tokenStorage = $tokenStorage;
     }
