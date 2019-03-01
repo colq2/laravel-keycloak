@@ -8,7 +8,7 @@ use colq2\Tests\Keycloak\Traits\FakeGateway;
 use Dotenv\Dotenv;
 use Laravel\Socialite\SocialiteServiceProvider;
 
-class TestCase extends \Orchestra\Testbench\TestCase
+class TestCase extends \Orchestra\Testbench\Dusk\TestCase
 {
     protected function setUp()
     {

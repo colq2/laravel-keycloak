@@ -22,7 +22,7 @@ class LoginController extends \Illuminate\Routing\Controller
 
     public function handleCallback()
     {
-        $this->handleCallback();
+        $this->authenticator->handleCallback();
 
         $user = auth()->user();
     }

@@ -6,6 +6,15 @@ use colq2\Keycloak\KeycloakUser;
 
 interface Authenticator
 {
+
+    /**
+     * Scopes which should be added
+     *
+     * @param array $scopes
+     * @return mixed
+     */
+    public function withScopes(array $scopes);
+
     /**
      * Handles the redirect request
      *
