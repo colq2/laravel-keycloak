@@ -8,11 +8,12 @@ Feel free to contribute to this.
 # To do
 [ ] Allow different user storage's like Cache, Session, Eloquent, Database etc.
 
-[ ] Save session state
-
 [ ] Implement nonce
 
 [ ] Write Readme
+
+[ ] Middleware for roles and scopes
+
 
 # Installation
 `composer require colq2/laravel-keycloak`

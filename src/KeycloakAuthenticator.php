@@ -21,6 +21,13 @@ class KeycloakAuthenticator implements Authenticator
     private $tokenStorage;
 
     /**
+     * Scopes that should be added used
+     *
+     * @var array $scopes
+     */
+    protected $scopes = [];
+
+    /**
      * Create a new Authentication handler for keycloak authentication.
      *
      * @param UserService $keycloakUserService
@@ -32,15 +39,32 @@ class KeycloakAuthenticator implements Authenticator
         $this->tokenStorage = $tokenStorage;
     }
 
+
+
+    /**
+     * Scopes which should be added
+     *
+     * @param array $scopes
+     * @return KeycloakAuthenticator
+     *
+     */
+    public function withScopes(array $scopes)
+    {
+        $this->scopes = $scopes;
+
+        return $this;
+    }
+
     /**
      * Handles redirect request
      *
-     * @return mixed
+     * @return RedirectRes
      */
     public function handleRedirect()
     {
         return socialite()
             ->driver('keycloak')
+            ->setScopes($this->scopes)
             ->redirect();
     }
 
@@ -72,10 +96,27 @@ class KeycloakAuthenticator implements Authenticator
         // We're done, TODO: fire user logged in event
     }
 
+    /**
+     * Authenticate a specific user
+     *
+     * @param KeycloakUser $user
+     * @return mixed|void
+     */
     public function authenticateUser(KeycloakUser $user)
     {
         auth()
             ->guard('keycloak')
             ->setUser($user);
     }
+
+    /**
+     * Returns the additional scopes
+     *
+     * @return array
+     */
+    public function getScopes(): array
+    {
+        return $this->scopes;
+    }
+
 }

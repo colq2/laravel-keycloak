@@ -4,7 +4,6 @@ namespace colq2\Keycloak;
 
 use colq2\Keycloak\Contracts\UserService;
 use Illuminate\Support\Arr;
-use Laravel\Socialite\Two\User as SocialiteUser;
 use Lcobucci\JWT\Claim;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Token;
