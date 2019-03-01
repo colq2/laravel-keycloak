@@ -90,6 +90,26 @@ class KeycloakGateway implements Gateway
     }
 
     /**
+     * Get user info from keycloak
+     *
+     * @param string $accessToken
+     * @return array
+     */
+    public function getUserInfoResponse(string $accessToken)
+    {
+        $response = $this->getHttpClient()
+            ->post($this->getUserInfoUrl(), [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Authorization' => 'Bearer ' . $accessToken
+                ]
+            ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    /**
      * Get a instance of the Guzzle HTTP client.
      *
      * @return \GuzzleHttp\Client
@@ -124,14 +144,46 @@ class KeycloakGateway implements Gateway
     }
 
     /**
+     * Return the user info url
+     *
+     * @return string
+     */
+    public function getUserInfoUrl()
+    {
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/userinfo';
+    }
+
+    /**
+     * Return the logout url
+     *
+     * @return string
+     */
+    public function getLogoutUrl()
+    {
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/logout';
+    }
+
+    /**
+     * Return the authentication url
+     *
+     * @return string
+     */
+    public function getAuthUrl()
+    {
+        return $this->getBaseUrlWithRealm() . '/protocol/openid-connect/auth    ';
+    }
+
+    /**
      * Return fields for refresh token request
      *
      * @param string $refreshToken
      * @return array
      */
-    protected function getRefreshTokenFields(string $refreshToken){
+    protected function getRefreshTokenFields(string $refreshToken)
+    {
         return [
             'client_id' => config('keycloak.client_id'),
+            'client_secret' => config('keycloak.client_secret'),
             'refresh_token' => $refreshToken,
             'grant_type' => 'refresh_token'
         ];
