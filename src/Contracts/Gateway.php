@@ -31,6 +31,14 @@ interface Gateway
     public function getRefreshTokenResponse(string $refreshToken);
 
     /**
+     * Get user info from keycloak
+     *
+     * @param string $accessToken
+     * @return array
+     */
+    public function getUserInfoResponse(string $accessToken);
+
+    /**
      * Returns the base url with realm
      *
      * @return string
@@ -43,4 +51,25 @@ interface Gateway
      * @return string
      */
     public function getTokenUrl();
+
+    /**
+     * Return the user info url
+     *
+     * @return string
+     */
+    public function getUserInfoUrl();
+
+    /**
+     * Return the logout url
+     *
+     * @return string
+     */
+    public function getLogoutUrl();
+
+    /**
+     * Return the authentication url
+     *
+     * @return string
+     */
+    public function getAuthUrl();
 }

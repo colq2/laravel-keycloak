@@ -42,6 +42,9 @@ class KeycloakGatewayTest extends TestCase
         $socialite->extend('keycloak', function () use ($socialite) {
             return $socialite->buildProvider(KeycloakProviderStub::class, config('keycloak'));
         });
+
+
+
     }
 
     public function testIntegrationTestConfig()
@@ -53,17 +56,57 @@ class KeycloakGatewayTest extends TestCase
         }
     }
 
+    public function testGatewayReceivesUserInfo()
+    {
+        $response = $this->getUserInfoResponse();
+
+        $this->assertArrayHasKey('sub', $response);
+    }
+
+    public function testGatewayReceivesToken()
+    {
+        $response = $this->getTokenResponse();
+
+        $this->assertArrayHasKey('access_token', $response);
+        $this->assertArrayHasKey('refresh_token', $response);
+        $this->assertArrayHasKey('id_token', $response);
+        $this->assertArrayHasKey('expires_in', $response);
+        $this->assertArrayHasKey('refresh_expires_in', $response);
+        $this->assertArrayHasKey('access_token', $response);
+        $this->assertArrayHasKey('token_type', $response);
+        $this->assertArrayHasKey('scope', $response);
+    }
+
+    public function testGatewayReceivesRefreshToken()
+    {
+        $response = $this->getRefreshResponse();
+
+        $this->assertArrayHasKey('access_token', $response);
+        $this->assertArrayHasKey('refresh_token', $response);
+        $this->assertArrayHasKey('id_token', $response);
+        $this->assertArrayHasKey('expires_in', $response);
+        $this->assertArrayHasKey('refresh_expires_in', $response);
+        $this->assertArrayHasKey('access_token', $response);
+        $this->assertArrayHasKey('token_type', $response);
+        $this->assertArrayHasKey('scope', $response);
+    }
+
     protected function getUserInfoResponse()
     {
         $tokens = $this->getTokenResponse();
 
-        $response = $this->gateway->getUserInfoResponse($tokens['access_token']);
+        return $this->gateway->getUserInfoResponse($tokens['access_token']);
+    }
+
+    protected function getRefreshResponse(){
+        $tokens = $this->getTokenResponse();
+
+        return $this->gateway->getRefreshTokenResponse($tokens['refresh_token']);
     }
 
     protected function getTokenResponse()
     {
         $request = $this->getCallbackRequest();
-        $callbackUrl = $request->getRequestUri();
 
         socialite()->driver('keycloak')->setRequest($request);
         $request->setLaravelSession(session());
@@ -80,6 +123,7 @@ class KeycloakGatewayTest extends TestCase
         $url = $baseResponse->getTargetUrl();
         $callbackUrl = '';
 
+
         $this->browse(function (Browser $browser) use ($url, &$callbackUrl) {
             $browser->visit($url)
                 ->assertSee('Log In')
@@ -88,6 +132,8 @@ class KeycloakGatewayTest extends TestCase
                 ->click('#kc-login');
 
             $callbackUrl = $browser->driver->getCurrentURL();
+
+            $browser->driver->manage()->deleteAllCookies();
         });
 
         $callbackUrl = substr($callbackUrl, strpos($callbackUrl, '/callback'));
