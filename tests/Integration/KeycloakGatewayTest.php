@@ -5,6 +5,7 @@ namespace colq2\Tests\Keycloak\Integration;
 use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\Gateway;
 use colq2\Tests\Keycloak\Stubs\KeycloakProviderStub;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Dusk\Browser;
@@ -43,8 +44,6 @@ class KeycloakGatewayTest extends TestCase
             return $socialite->buildProvider(KeycloakProviderStub::class, config('keycloak'));
         });
 
-
-
     }
 
     public function testIntegrationTestConfig()
@@ -59,7 +58,7 @@ class KeycloakGatewayTest extends TestCase
     public function testGatewayReceivesUserInfo()
     {
         $response = $this->getUserInfoResponse();
-
+        dd($response);
         $this->assertArrayHasKey('sub', $response);
     }
 
@@ -111,9 +110,11 @@ class KeycloakGatewayTest extends TestCase
         socialite()->driver('keycloak')->setRequest($request);
         $request->setLaravelSession(session());
 
-        return $this->gateway->getAccessTokenResponse($this->getTokenFields(
+        $response =  $this->gateway->getAccessTokenResponse($this->getTokenFields(
             $request->get('code')
         ));
+
+        return $response;
     }
 
     protected function getCallbackRequest()
@@ -123,17 +124,15 @@ class KeycloakGatewayTest extends TestCase
         $url = $baseResponse->getTargetUrl();
         $callbackUrl = '';
 
-
-        $this->browse(function (Browser $browser) use ($url, &$callbackUrl) {
-            $browser->visit($url)
+        $this->browse(function (Browser $browser, Browser $newBrowser) use ($url, &$callbackUrl) {
+            $newBrowser->visit($url)
                 ->assertSee('Log In')
                 ->type('username', 'test')
                 ->type('password', 'secret')
                 ->click('#kc-login');
 
-            $callbackUrl = $browser->driver->getCurrentURL();
-
-            $browser->driver->manage()->deleteAllCookies();
+            $callbackUrl = $newBrowser
+                ->driver->getCurrentURL();
         });
 
         $callbackUrl = substr($callbackUrl, strpos($callbackUrl, '/callback'));

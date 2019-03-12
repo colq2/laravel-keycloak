@@ -14,6 +14,7 @@ Feel free to contribute to this.
 
 [ ] Middleware for roles and scopes
 
+[ ] Upload to packagist
 
 # Installation
 `composer require colq2/laravel-keycloak`
