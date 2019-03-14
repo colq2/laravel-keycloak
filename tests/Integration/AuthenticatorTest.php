@@ -4,7 +4,7 @@ namespace colq2\Keycloak\Test\Integration;
 
 use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\TokenStorage;
-use colq2\Keycloak\KeycloakAuthenticator;
+use colq2\Keycloak\DefaultAuthenticator;
 use colq2\Keycloak\KeycloakProvider;
 use colq2\Keycloak\SocialiteOIDCUser;
 use colq2\Tests\Keycloak\Integration\TestCase;
@@ -89,7 +89,7 @@ class AuthenticatorTest extends TestCase
             return $provider;
         });
 
-        $authenticator = $this->app->make(KeycloakAuthenticator::class);
+        $authenticator = $this->app->make(DefaultAuthenticator::class);
 
         $authenticator->handleCallback();
 

@@ -3,8 +3,9 @@
 namespace colq2\Keycloak;
 
 use colq2\Keycloak\Contracts\Gateway;
+use colq2\Keycloak\Contracts\KeyFetcher;
 
-class KeycloakRealmKeyFetcher
+class OnlineRealmKeyFetcher implements KeyFetcher
 {
     /**
      * @var \colq2\Keycloak\KeycloakGateway
@@ -27,7 +28,7 @@ class KeycloakRealmKeyFetcher
      *
      * @return \Illuminate\Contracts\Cache\Repository|string|null
      */
-    public function fetchPublicKey()
+    public function fetchKey(): string
     {
 
         // Try to get from cache

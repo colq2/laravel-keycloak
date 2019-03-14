@@ -6,7 +6,7 @@ use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\TokenStorage;
 use colq2\Keycloak\Contracts\UserService;
 
-class KeycloakAuthenticator implements Authenticator
+class DefaultAuthenticator implements Authenticator
 {
     /**
      * User Service
@@ -45,7 +45,7 @@ class KeycloakAuthenticator implements Authenticator
      * Scopes which should be added
      *
      * @param array $scopes
-     * @return KeycloakAuthenticator
+     * @return DefaultAuthenticator
      *
      */
     public function withScopes(array $scopes)

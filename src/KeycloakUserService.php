@@ -60,7 +60,7 @@ class KeycloakUserService implements UserService
     public function getKeycloakUserByToken($token): KeycloakUser
     {
         // get socialite user
-        $socialiteUser = $this->mapUserArrayToSocialiteUser($this->getUserArrayByToken($token));
+        $socialiteUser = $this->mapUserArrayToKeycloakUser($this->getUserArrayByToken($token));
 
         // transform to KeycloakUser
         $user = $this->updateOrCreate($socialiteUser);
@@ -86,7 +86,7 @@ class KeycloakUserService implements UserService
      * @param array $user
      * @return \colq2\Keycloak\SocialiteOIDCUser
      */
-    public function mapUserArrayToSocialiteUser(array $user)
+    public function mapUserArrayToKeycloakUser(array $user)
     {
         return (new SocialiteOIDCUser)->setRaw($user)
             ->map($user);
