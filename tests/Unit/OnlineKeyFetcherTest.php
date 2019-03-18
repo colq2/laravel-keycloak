@@ -7,7 +7,7 @@ use colq2\Keycloak\OnlineRealmKeyFetcher;
 use colq2\Tests\Keycloak\TestCase;
 use colq2\Tests\Keycloak\Traits\FakeGateway;
 
-class RealmKeyFetcherTest extends TestCase
+class OnlineKeyFetcherTest extends TestCase
 {
     use FakeGateway;
 

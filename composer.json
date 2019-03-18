@@ -23,7 +23,10 @@
         "illuminate/contracts": "5.7.*",
         "illuminate/session": "^5.7",
         "illuminate/support": "^5.7",
-        "stevenmaguire/oauth2-keycloak": "dev-master"
+        "stevenmaguire/oauth2-keycloak": "dev-master",
+        "lcobucci/jwt": "^3.2",
+        "ext-http": "*",
+        "ext-json": "*"
     },
     "require-dev": {
         "orchestra/testbench": "~3.7",
@@ -33,8 +36,7 @@
     "autoload": {
         "psr-4": {
             "colq2\\Keycloak\\": "src/"
-        },
-        "files": ["src/helpers.php"]
+        }
     },
     "autoload-dev": {
         "psr-4": {

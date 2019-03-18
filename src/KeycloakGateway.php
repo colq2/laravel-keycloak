@@ -6,6 +6,8 @@ use colq2\Keycloak\Contracts\Gateway;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Arr;
+use Lcobucci\JWT\Claim;
+use Lcobucci\JWT\Parser;
 
 class KeycloakGateway implements Gateway
 {
@@ -106,7 +108,19 @@ class KeycloakGateway implements Gateway
                 ]
             ]);
 
-        return json_decode($response->getBody(), true);
+        $body = (string)$response->getBody();
+        $userInfo = json_decode($body, true);
+
+        if ($userInfo === null) {
+            $claims = (new Parser())->parse($body)->getClaims();
+            $userInfo = [];
+            foreach ($claims as $claim) {
+                $userInfo[$claim->getName()] = $claim->getValue();
+            }
+
+            return $userInfo;
+        }
+        return $userInfo;
     }
 
     /**

@@ -6,7 +6,6 @@ use colq2\Keycloak\KeycloakServiceProvider;
 use colq2\Tests\Keycloak\Stubs\KeycloakUser;
 use colq2\Tests\Keycloak\Traits\FakeGateway;
 use Dotenv\Dotenv;
-use Laravel\Socialite\SocialiteServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\Dusk\TestCase
 {
@@ -28,7 +27,6 @@ class TestCase extends \Orchestra\Testbench\Dusk\TestCase
     {
         return [
             KeycloakServiceProvider::class,
-            SocialiteServiceProvider::class,
         ];
     }
 

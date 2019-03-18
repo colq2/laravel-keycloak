@@ -5,9 +5,17 @@ namespace colq2\Keycloak;
 use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\TokenStorage;
 use colq2\Keycloak\Contracts\UserService;
+use colq2\Keycloak\Exceptions\InvalidStateException;
+use Illuminate\Contracts\Session\Session;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Stevenmaguire\OAuth2\Client\Provider\Keycloak as KeycloakProvider;
+use Stevenmaguire\OAuth2\Client\Provider\KeycloakResourceOwner;
 
 class DefaultAuthenticator implements Authenticator
 {
+    const STATE_KEY = 'keycloak_oauth2state';
+
     /**
      * User Service
      *
@@ -21,6 +29,16 @@ class DefaultAuthenticator implements Authenticator
     private $tokenStorage;
 
     /**
+     * @var KeycloakProvider $provider
+     */
+    protected $provider;
+
+    /**
+     * @var Session $session
+     */
+    protected $session;
+
+    /**
      * Scopes that should be added used
      *
      * @var array $scopes
@@ -28,17 +46,27 @@ class DefaultAuthenticator implements Authenticator
     protected $scopes = [];
 
     /**
+     * @var Request
+     */
+    protected $request;
+
+    /**
      * Create a new Authentication handler for keycloak authentication.
      *
      * @param UserService $keycloakUserService
      * @param \colq2\Keycloak\Contracts\TokenStorage $tokenStorage
+     * @param KeycloakProvider $provider
+     * @param Session $session
+     * @param Request $request
      */
-    public function __construct(UserService $keycloakUserService, TokenStorage $tokenStorage)
+    public function __construct(UserService $keycloakUserService, TokenStorage $tokenStorage, KeycloakProvider $provider, Session $session, Request $request)
     {
         $this->keycloakUserService = $keycloakUserService;
         $this->tokenStorage = $tokenStorage;
+        $this->provider = $provider;
+        $this->session = $session;
+        $this->request = $request;
     }
-
 
 
     /**
@@ -58,40 +86,48 @@ class DefaultAuthenticator implements Authenticator
     /**
      * Handles redirect request
      *
-     * @return RedirectRes
+     * @return RedirectResponse
      */
     public function handleRedirect()
     {
-        return socialite()
-            ->driver('keycloak')
-            ->setScopes($this->scopes)
-            ->redirect();
+        $authUrl = $this->provider->getAuthorizationUrl();
+        $state = $this->provider->getState();
+        $this->session->put(self::STATE_KEY, $state);
+
+        return RedirectResponse::create($authUrl);
     }
 
     /**
      * Handles callback request
      *
+     * @throws \Stevenmaguire\OAuth2\Client\Provider\Exception\EncryptionConfigurationException
+     * @throws \League\OAuth2\Client\Provider\Exception\IdentityProviderException
      */
     public function handleCallback()
     {
         // retrieve user from socialite
         // TODO: What happens this doesn't work?
-        $socialiteUser = socialite()
-            ->driver('keycloak')
-            ->user();
+        if ($this->hasInvalidState()) {
+            throw new InvalidStateException();
+        }
+
+        $token = $this->provider->getAccessToken('authorization_code', [
+            'code' => $this->request->get('code')
+        ]);
+
+        $user = $this->provider->getResourceOwner($token);
 
         // Find authenticatable user
-        $user = $this->keycloakUserService->updateOrCreate($socialiteUser);
+        $userArray = $user->toArray();
+        $user = $this->keycloakUserService->updateOrCreate($userArray);
 
         // login user
         $this->authenticateUser($user);
 
-        // We don't need to check the token here, because we
-        // we have a guard, which checks the token each request
-
         // save token to storage
-        $this->tokenStorage->storeAll($socialiteUser->token, $socialiteUser->refreshToken, $socialiteUser->idToken);
-
+        $this->tokenStorage->storeAccessToken($token->getToken());
+        $this->tokenStorage->storeRefreshToken($token->getRefreshToken());
+        $this->tokenStorage->store( $token, 'oauth2_token');
 
         // We're done, TODO: fire user logged in event
     }
@@ -117,6 +153,18 @@ class DefaultAuthenticator implements Authenticator
     public function getScopes(): array
     {
         return $this->scopes;
+    }
+
+    /**
+     *
+     * Determine if the current request / session has a mismatching "state".
+     *
+     * @return bool
+     */
+    protected function hasInvalidState()
+    {
+        $state = $this->request->session()->pull(self::STATE_KEY);
+        return !(strlen($state) > 0 && $this->request->input('state') === $state);
     }
 
 }

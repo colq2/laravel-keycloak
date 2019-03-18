@@ -9,16 +9,11 @@ use colq2\Keycloak\Contracts\TokenChecker;
 use colq2\Keycloak\Contracts\TokenFinder;
 use colq2\Keycloak\Contracts\TokenStorage;
 use colq2\Keycloak\Contracts\UserService;
-use function foo\func;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Session\Session;
-use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
-use Lcobucci\JWT\Token;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Nexmo\User\User;
 use Stevenmaguire\OAuth2\Client\Provider\Keycloak;
 
 class KeycloakServiceProvider extends ServiceProvider
@@ -39,7 +34,7 @@ class KeycloakServiceProvider extends ServiceProvider
         $provider = $this->app->make(AbstractProvider::class);
         $keyFetcher = $this->app->make(KeyFetcher::class);
 
-        if($provider instanceof Keycloak){
+        if ($provider instanceof Keycloak) {
             $provider->setEncryptionAlgorithm('RS256');
             $provider->setEncryptionKey($keyFetcher->fetchKey());
         }
@@ -70,16 +65,9 @@ class KeycloakServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->registerKeycloakProvider();
 
-        $this->app->singleton(AbstractProvider::class, function (Container $app) {
-            return new Keycloak([
-                'authServerUrl' => $app['config']->get('keycloak.base_url'),
-                'realm' => $app['config']->get('keycloak.realm'),
-                'clientId' => $app['config']->get('keycloak.client_id'),
-                'clientSecret' => $app['config']->get('keycloak.client_secret'),
-                'redirectUri' => $app['config']->get('keycloak.redirect'),
-            ]);
-        });
+        $this->registerTokenServices();
 
         $this->app->singleton(UserService::class, function (Container $app) {
             return new KeycloakUserService(
@@ -87,17 +75,56 @@ class KeycloakServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(KeyFetcher::class, function(Container $app){
-           return new ConfigKeyFetcher();
+        $this->app->singleton(KeyFetcher::class, function (Container $app) {
+            return new ConfigKeyFetcher();
         });
 
-        $this->app->bind(Authenticator::class, function (Container $app) {
+        $this->app->singleton(Authenticator::class, function (Container $app) {
             return new DefaultAuthenticator(
                 $app->make(UserService::class),
-                $app->make(TokenStorage::class)
+                $app->make(TokenStorage::class),
+                $app->make(Keycloak::class),
+                $app->make(Session::class),
+                $app['request']
             );
         });
 
+
+        $this->app->bind(Gateway::class, function (Container $app) {
+            return new KeycloakGateway();
+        });
+
+    }
+
+    protected function registerKeycloakProvider()
+    {
+        $this->app->singleton(AbstractProvider::class, function (Container $app) {
+            $keycloakProvider = new Keycloak([
+                'authServerUrl' => $app['config']->get('keycloak.base_url'),
+                'realm' => $app['config']->get('keycloak.realm'),
+                'clientId' => $app['config']->get('keycloak.client_id'),
+                'clientSecret' => $app['config']->get('keycloak.client_secret'),
+                'redirectUri' => url($app['config']->get('keycloak.redirect')),
+            ]);
+
+            return $keycloakProvider;
+        });
+
+        $this->app->singleton(Keycloak::class, function (Container $app) {
+            $keycloakProvider = new Keycloak([
+                'authServerUrl' => $app['config']->get('keycloak.base_url'),
+                'realm' => $app['config']->get('keycloak.realm'),
+                'clientId' => $app['config']->get('keycloak.client_id'),
+                'clientSecret' => $app['config']->get('keycloak.client_secret'),
+                'redirectUri' => url($app['config']->get('keycloak.redirect')),
+            ]);
+
+            return $keycloakProvider;
+        });
+    }
+
+    public function registerTokenServices(): void
+    {
         $this->app->bind(TokenFinder::class, function () {
             return new KeycloakTokenFinder(
                 $this->app->make(TokenStorage::class)
@@ -107,16 +134,10 @@ class KeycloakServiceProvider extends ServiceProvider
         $this->app->bind(TokenStorage::class, function (Container $app) {
             return new SessionTokenStorage($app->make(Session::class));
         });
-
         $this->app->bind(TokenChecker::class, function () {
             return new KeycloakTokenChecker(
                 $this->app->make(Gateway::class)
             );
         });
-
-        $this->app->bind(Gateway::class, function (Container $app) {
-            return new KeycloakGateway();
-        });
-
     }
 }

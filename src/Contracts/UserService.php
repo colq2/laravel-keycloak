@@ -31,6 +31,14 @@ interface UserService
     public function mapUserArrayToKeycloakUser(array $user);
 
     /**
+     * Transform user array
+     *
+     * @param array $user
+     * @return array
+     */
+    public function mapUser(array $user): array;
+
+    /**
      * Parse token and get claims out of it
      *
      * @param string $token
