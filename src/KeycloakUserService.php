@@ -100,6 +100,11 @@ class KeycloakUserService implements UserService
     {
         $user['username'] = $user['preferred_username'];
 
+        $user['roles'] = [
+            'realm_access' => Arr::get($user, 'realm_access', []),
+            'resource_access' => Arr::get($user, 'resource_access', [])
+        ];
+
         return $user;
     }
 

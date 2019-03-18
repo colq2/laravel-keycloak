@@ -20,6 +20,7 @@ class CreateKeycloakUsersTable extends Migration
             $table->string('email')->nullable();
             $table->string('name')->nullable();
             $table->string('picture')->nullable();
+            $table->json('roles')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

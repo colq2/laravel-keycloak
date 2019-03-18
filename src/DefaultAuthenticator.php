@@ -90,7 +90,9 @@ class DefaultAuthenticator implements Authenticator
      */
     public function handleRedirect()
     {
-        $authUrl = $this->provider->getAuthorizationUrl();
+        $authUrl = $this->provider->getAuthorizationUrl(
+            ['scope' => implode(' ', $this->scopes)]
+        );
         $state = $this->provider->getState();
         $this->session->put(self::STATE_KEY, $state);
 
@@ -127,7 +129,7 @@ class DefaultAuthenticator implements Authenticator
         // save token to storage
         $this->tokenStorage->storeAccessToken($token->getToken());
         $this->tokenStorage->storeRefreshToken($token->getRefreshToken());
-        $this->tokenStorage->store( $token, 'oauth2_token');
+        $this->tokenStorage->store($token, 'oauth2_token');
 
         // We're done, TODO: fire user logged in event
     }
