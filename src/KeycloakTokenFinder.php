@@ -5,7 +5,6 @@ namespace colq2\Keycloak;
 
 use colq2\Keycloak\Contracts\TokenFinder;
 use colq2\Keycloak\Contracts\TokenStorage as TokenStorage;
-use Lcobucci\JWT\Token;
 
 class KeycloakTokenFinder implements TokenFinder
 {
@@ -67,7 +66,7 @@ class KeycloakTokenFinder implements TokenFinder
         $token = $this->tokenStorage->getIdToken();
 
         // 2. If it is empty, try to retrieve it from userinfo endpoint
-        if(empty($token)){
+        if (empty($token)) {
             // TODO
             return null;
         }

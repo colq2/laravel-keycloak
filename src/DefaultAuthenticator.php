@@ -10,7 +10,6 @@ use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Stevenmaguire\OAuth2\Client\Provider\Keycloak as KeycloakProvider;
-use Stevenmaguire\OAuth2\Client\Provider\KeycloakResourceOwner;
 
 class DefaultAuthenticator implements Authenticator
 {

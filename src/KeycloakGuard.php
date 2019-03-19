@@ -18,7 +18,7 @@ class KeycloakGuard implements Guard
 
     const KEYCLOAK_TOKEN_NAME = 'keycloak_token';
 
-     /**
+    /**
      * @var \colq2\Keycloak\KeycloakTokenFinder $tokenFinder
      */
     private $tokenFinder;
@@ -49,7 +49,8 @@ class KeycloakGuard implements Guard
         TokenFinder $tokenFinder,
         UserService $userService,
         Gateway $gateway
-    ) {
+    )
+    {
 
         $this->provider = $provider;
         $this->tokenFinder = $tokenFinder;
@@ -69,7 +70,7 @@ class KeycloakGuard implements Guard
         // If we've already retrieved the user for the current request we can just
         // return it back immediately. We do not want to fetch the user data on
         // every call to this method because that would be tremendously slow.
-        if (! is_null($this->user)) {
+        if (!is_null($this->user)) {
             return $this->user;
         }
 
@@ -79,11 +80,10 @@ class KeycloakGuard implements Guard
         $accessToken = $this->tokenFinder->findAccessToken();
 
         // 2. Check if the access token is valid
-        if(! $this->tokenChecker->checkToken($accessToken))
-        {
+        if (!$this->tokenChecker->checkToken($accessToken)) {
             // 3. If it's not, try to refresh it
             // TODO refresh token
-            if(! $this->refreshToken()){
+            if (!$this->refreshToken()) {
                 // 4. If this fails we quit
                 $this->tokenStorage->empty();
 
@@ -99,10 +99,10 @@ class KeycloakGuard implements Guard
 
         // 6. If an id token was found, get a user by this token
         // 7. Else get a user by the access token
-        if(empty($idToken)){
+        if (empty($idToken)) {
             $user = $this->userService->getKeycloakUserByToken($accessToken);
-        }else{
-            if(!$this->tokenChecker->checkIdToken($idToken)){
+        } else {
+            if (!$this->tokenChecker->checkIdToken($idToken)) {
                 $this->tokenStorage->empty();
             }
 
@@ -122,7 +122,7 @@ class KeycloakGuard implements Guard
      */
     public function validate(array $credentials = [])
     {
-        if (! array_key_exists('token', $credentials)) {
+        if (!array_key_exists('token', $credentials)) {
             return false;
         }
 
@@ -151,7 +151,7 @@ class KeycloakGuard implements Guard
     /**
      * Set the current user.
      *
-     * @param  Authenticatable  $user
+     * @param  Authenticatable $user
      * @return $this
      */
     public function setUser(Authenticatable $user)
@@ -171,7 +171,7 @@ class KeycloakGuard implements Guard
     {
         $refreshToken = $this->tokenFinder->findRefreshToken();
 
-        if(empty($refreshToken)){
+        if (empty($refreshToken)) {
             return false;
         }
 

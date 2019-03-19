@@ -63,7 +63,7 @@ class KeycloakTokenChecker implements TokenChecker
         }
 
         $claims = [];
-        foreach ($token->getClaims() as $claim){
+        foreach ($token->getClaims() as $claim) {
             $claims[$claim->getName()] = $claim->getValue();
         }
         // 2. The Issuer Identifier for the OpenID Provider (which is typically obtained during Discovery)
@@ -83,22 +83,22 @@ class KeycloakTokenChecker implements TokenChecker
         $aud = Arr::get($claims, 'aud');
         $azp = Arr::get($claims, 'azp', null);
 
-        if(is_array($aud)){
+        if (is_array($aud)) {
             // We have an audience array
-            if(!in_array(config('keycloak.client_id'), $aud)){
+            if (!in_array(config('keycloak.client_id'), $aud)) {
                 return false;
             }
 
             // 4. If the ID Token contains multiple audiences, the Client SHOULD verify that an azp Claim is present.
             // TODO: We only support a single client at the moment
-            if(!$azp) return false;
+            if (!$azp) return false;
 
             // 5. If an azp (authorized party) Claim is present, the Client SHOULD verify that its client_id is the Claim Value.
             if ($azp !== config('keycloak.client_id')) {
                 return false;
             }
 
-        }else{
+        } else {
             // We have a single audience
             if (Arr::get($claims, 'aud') !== config('keycloak.client_id')) {
                 return false;
@@ -111,7 +111,6 @@ class KeycloakTokenChecker implements TokenChecker
         }
 
 
-
         // 6. If the ID Token is received via direct communication between the Client and the
         // Token Endpoint (which it is in this flow), the TLS server validation MAY be used to
         // validate the issuer in place of checking the token signature.
@@ -119,7 +118,7 @@ class KeycloakTokenChecker implements TokenChecker
         // the algorithm specified in the JWT alg Header Parameter. The Client MUST use the keys provided by the Issuer.
         // Fetch public key
         $publicKey = $this->gateway->fetchPublicKey();
-        $publicKey = "-----BEGIN PUBLIC KEY-----".PHP_EOL.$publicKey.PHP_EOL.'-----END PUBLIC KEY-----'.PHP_EOL;
+        $publicKey = "-----BEGIN PUBLIC KEY-----" . PHP_EOL . $publicKey . PHP_EOL . '-----END PUBLIC KEY-----' . PHP_EOL;
 
         // Determine signature method
         try {
@@ -129,12 +128,14 @@ class KeycloakTokenChecker implements TokenChecker
         }
 
         // Verify the algorithm
-        try{
+        try {
             if (!$token->verify($alg, $publicKey)) {
                 return false;
             }
 
-        }catch (\Exception $e){ return false; }
+        } catch (\Exception $e) {
+            return false;
+        }
 
         // 7. The alg value SHOULD be the default of RS256 or the algorithm sent by the Client in
         // the id_token_signed_response_alg parameter during Registration.

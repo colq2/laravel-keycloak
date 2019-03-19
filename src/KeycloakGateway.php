@@ -6,7 +6,6 @@ use colq2\Keycloak\Contracts\Gateway;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Arr;
-use Lcobucci\JWT\Claim;
 use Lcobucci\JWT\Parser;
 
 class KeycloakGateway implements Gateway
