@@ -4,13 +4,7 @@ namespace colq2\Tests\Keycloak\Unit;
 
 
 use colq2\Keycloak\Roles\RoleChecker;
-use colq2\Keycloak\SignerFactory;
-use colq2\Tests\Keycloak\Factories\KeyPairFactory;
-use colq2\Tests\Keycloak\Stubs\KeycloakUser;
 use colq2\Tests\Keycloak\TestCase;
-use Illuminate\Support\Arr;
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Token;
 
 class RoleCheckerTest extends TestCase
 {
@@ -28,50 +22,6 @@ class RoleCheckerTest extends TestCase
         $this->roleChecker = new RoleChecker();
     }
 
-    protected function generateToken()
-    {
-        $roles = $this->generateRoles();
-
-        $builder = new Builder();
-        $builder->set('realm_access', Arr::get($roles, 'realm_access'));
-        $builder->set('resource_access', Arr::get($roles, 'resource_access'));
-
-        $keyPair = KeyPairFactory::create();
-        $builder->sign(SignerFactory::create('RS256'), $keyPair->getPrivateKey());
-
-        return $builder->getToken();
-    }
-
-    protected function generateUser() {
-        $user = new KeycloakUser([
-            'sub' => 'subject',
-            'username' => 'johndoe',
-            'name' => 'John Doe',
-            'email' => 'john.doe@example.com',
-            'picture' => null,
-            'roles' => $this->generateRoles()
-        ]);
-
-        $user->save();
-
-        return $user->refresh();
-    }
-
-    protected function generateRoles(){
-        return [
-            'realm_access' => [
-                'roles' => ['offline_access', 'uma_authorization']
-            ],
-            'resource_access' => [
-                'test-client' => [
-                    'roles' => ['update-test', 'create-test', 'view-test'] // manage-test, delete-test
-                ],
-                'test-client2' => [
-                    'roles' => ['view-profile']
-                ]
-            ]
-        ];
-    }
 
     public function testCheckSingleRoleForRealmAccess()
     {
@@ -95,7 +45,8 @@ class RoleCheckerTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testCheckFailsOnMissingRoleForRealmAccess(){
+    public function testCheckFailsOnMissingRoleForRealmAccess()
+    {
         $user = $this->generateUser();
 
         $result = $this->roleChecker
@@ -149,7 +100,8 @@ class RoleCheckerTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function testCheckFromToken(){
+    public function testCheckFromToken()
+    {
         $token = $this->generateToken();
 
         $result = $this->roleChecker
@@ -159,8 +111,9 @@ class RoleCheckerTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testCheckFromStringToken(){
-        $token = (string) $this->generateToken();
+    public function testCheckFromStringToken()
+    {
+        $token = (string)$this->generateToken();
 
         $result = $this->roleChecker
             ->for(new \colq2\Keycloak\Roles\Token($token))

@@ -5,7 +5,7 @@ namespace colq2\Keycloak\Http\Middleware;
 
 use Closure;
 use colq2\Keycloak\Roles\RoleChecker;
-use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Auth\AuthenticationException;
 
 class CheckResourceAccess
 {
@@ -32,11 +32,16 @@ class CheckResourceAccess
      * @param $client
      * @param array $roles
      * @return mixed
+     * @throws AuthenticationException
      */
-    public function handle($request, Closure $next, $client, ...$roles)
+    public function handle($request, Closure $next, $client = '', ...$roles)
     {
         if (auth()->guest()) {
-            throw new UnauthorizedException('Please log in.');
+            throw new AuthenticationException();
+        }
+
+        if (empty($roles) or empty($client)) {
+            abort(403, 'Access denied.');
         }
 
         $user = auth()->user();

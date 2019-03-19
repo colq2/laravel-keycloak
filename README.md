@@ -26,7 +26,8 @@ This project redefines the user model and migrations. There is no need for passw
 * name
 * email
 * picture
-
+* roles
+ 
 You can delete all migrations in your laravel project if you want to use keycloak as the only auth possibility.
 
 
@@ -89,9 +90,8 @@ This package comes with `CheckRealmAccess` and `CheckResourceAccess` middleware.
 ```
 protected $routeMiddleware = [
     // ...
-    'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
-    'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
-    'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+    'realm_access' => \colq2\Keycloak\Http\Middleware\CheckRealmAccess::class,
+    'resource_access' => \colq2\Keycloak\Http\Middleware\CheckResourceAccess::class,
 ];
 ```
 
@@ -137,6 +137,7 @@ By default you can use all claims that are defined in the openid-connect specs.
             $table->string('email')->nullable();
             $table->string('name')->nullable();
             $table->string('picture')->nullable();
+            $table->json('roles')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -150,40 +151,31 @@ After you defined which properties you need. You have to define the same in the 
 ```
 <?php
 
-namespace App;
+namespace colq2\Keycloak;
 
-use Illuminate\Notifications\Notifiable;
-use colq2\Keycloak\KeycloakUser as Authenticatable;
+use colq2\Keycloak\Contracts\Roles\HasRoles;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 
-class User extends Authenticatable
+class KeycloakUser extends Model implements AuthenticatableContract, AuthorizableContract, HasRoles
 {
-    use Notifiable;
+    use Authenticatable, Authorizable;
 
- 	/**
-     * @var string 
-     */
     protected $table = 'users';
 
-    /**
-     *
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        // TODO: Update the fillable 
-        'sub, 'username', 'name', 'email', 'picture'
-    ];
+    protected $fillable = [ 'sub', 'username', 'name', 'email', 'picture', 'roles' ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'remember_token',
-    ];
+    protected $casts = [ 'roles' => 'array' ];
 
+    protected $hidden = [ 'remember_token' ];
+
+    public function getAllRoles(): array
+    {
+        return $this->roles;
+    }
 }
 
 ```
@@ -196,22 +188,26 @@ Then update the app binding to your user service.
 In CustomUserService:
 
 ```
+<?php
+
+namespace colq2\Keycloak\Examples;
+
 use colq2\Keycloak\KeycloakUserService;
-use colq2\Keycloak\SocialiteOIDCUser;
 
 class CustomUserService extends KeycloakUserService
 {
 
-    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user)
+    /**
+     * @param array $user
+     * @return array|\colq2\Keycloak\KeycloakUser
+     */
+    public function mapUser(array $user): array
     {
-        $keycloakUser = (array) $user;
+        // Do whatever you need
+        $user['username'] = $user['preferred_username'];
 
-        // DO whatever you need
-
-        // For example
-        $keycloakUser['username'] = $keycloakUser['preferred_username'];
-
-        return $keycloakUser;
+        // And return it
+        return $user;
     }
 }
 ```

@@ -27,7 +27,6 @@ class RoleChecker
      */
     public function hasRealmAccessRole($roles)
     {
-        $r = $this->subject->getAllRoles();
         $realmRoles = Arr::get($this->subject->getAllRoles(), 'realm_access.roles', []);
 
         if (!is_array($roles)) {
