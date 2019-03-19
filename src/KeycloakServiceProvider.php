@@ -23,11 +23,12 @@ class KeycloakServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // config
         $this->publishes([
+            __DIR__ . '/../database/migrations/' => database_path('migrations'),
             __DIR__ . '/../config/keycloak.php' => config_path('keycloak.php'),
-        ]);
+        ], 'keycloak');
 
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         $this->mergeConfigFrom(__DIR__ . '/../config/keycloak.php', 'keycloak');
 
         // Extending auth
@@ -41,14 +42,6 @@ class KeycloakServiceProvider extends ServiceProvider
                 $app->make(Gateway::class)
             );
         });
-
-
-        // Migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-
-        $this->publishes([
-            __DIR__ . '/../database/migrations/' => database_path('migrations')
-        ], 'keycloak');
     }
 
     /**
@@ -102,7 +95,7 @@ class KeycloakServiceProvider extends ServiceProvider
                 'clientSecret' => $app['config']->get('keycloak.client_secret'),
                 'redirectUri' => url($app['config']->get('keycloak.redirect')),
                 'encryptionAlgorithm' => 'RS256',                             // optional
-                'encryptionKeyPath' => $keyFetcher->fetchKey()                         // optional
+                'encryptionKey' => $keyFetcher->fetchKey()                         // optional
             ]);
 
             return $keycloakProvider;
