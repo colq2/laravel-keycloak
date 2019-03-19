@@ -3,6 +3,7 @@
 namespace colq2\Keycloak;
 
 use colq2\Keycloak\Contracts\Gateway;
+use colq2\Keycloak\Contracts\KeyFetcher;
 use colq2\Keycloak\Contracts\TokenChecker;
 use colq2\Keycloak\Exceptions\SignerNotFoundException;
 use Illuminate\Support\Arr;
@@ -16,10 +17,15 @@ class KeycloakTokenChecker implements TokenChecker
      * @var Gateway
      */
     private $gateway;
+    /**
+     * @var KeyFetcher $keyFetcher
+     */
+    private $keyFetcher;
 
-    public function __construct(Gateway $gateway)
+    public function __construct(Gateway $gateway, KeyFetcher $keyFetcher)
     {
         $this->gateway = $gateway;
+        $this->keyFetcher = $keyFetcher;
     }
 
     /**
@@ -32,10 +38,21 @@ class KeycloakTokenChecker implements TokenChecker
         if (!$token instanceof Token) {
             try {
                 $token = (new Parser)->parse($token);
+
+                $key = $this->keyFetcher->fetchKey();
+                $signer = SignerFactory::create($token->getHeader('alg', 'RS256'));
+                if (!$token->verify($signer, $key)) {
+                    return false;
+                }
+
+                if ($token->isExpired()) {
+                    return false;
+                }
             } catch (\Exception $e) {
                 return false;
             }
         }
+
 
         return true;
     }

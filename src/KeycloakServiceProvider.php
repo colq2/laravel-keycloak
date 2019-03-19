@@ -107,18 +107,19 @@ class KeycloakServiceProvider extends ServiceProvider
 
     public function registerTokenServices(): void
     {
-        $this->app->bind(TokenFinder::class, function () {
+        $this->app->bind(TokenFinder::class, function (Container $app) {
             return new KeycloakTokenFinder(
-                $this->app->make(TokenStorage::class)
+                $app->make(TokenStorage::class)
             );
         });
 
         $this->app->bind(TokenStorage::class, function (Container $app) {
             return new SessionTokenStorage($app->make(Session::class));
         });
-        $this->app->bind(TokenChecker::class, function () {
+        $this->app->bind(TokenChecker::class, function (Container $app) {
             return new KeycloakTokenChecker(
-                $this->app->make(Gateway::class)
+                $app->make(Gateway::class),
+                $app->make(KeyFetcher::class)
             );
         });
     }
