@@ -8,11 +8,7 @@ Feel free to contribute to this.
 # To do
 [ ] Allow different user storage's like Cache, Session, Eloquent, Database etc.
 
-[ ] Implement nonce
-
 [ ] Write Readme
-
-[ ] Middleware for roles and scopes
 
 [ ] Upload to packagist
 
@@ -43,9 +39,6 @@ KEYCLOAK_REALM=
 KEYCLOAK_CLIENT_ID=
 KEYCLOAK_CLIENT_SECRET=
 KEYCLOAK_REDIRECT=/callback
-KEYCLOAK_USE_NONCE=false
-KEYCLOAK_NONCE_LIFETIME=600
-KEYCLOAK_MAX_AGE=86400
 ```
 
 ## Usage
@@ -90,6 +83,34 @@ Route::get('callback', 'LoginController@handleCallback');
 ```
 
 
+## Middleware
+This package comes with `CheckRealmAccess` and `CheckResourceAccess` middleware. You can add them in the `app/Http/Kernel.php` file.
+
+```
+protected $routeMiddleware = [
+    // ...
+    'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+    'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+    'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+];
+```
+
+Then you can use the middleware:
+
+### Realm Access Middleware
+
+```
+Route::get('post/{post}', function(Post $post) {
+    // The current user has role1 and role2 in the realm
+})->middleware('realm_access:role1,role2');
+```
+
+### Resource Access Middleware
+```
+Route::get('post/{post}', function(Post $post) {
+    // The current user has role1 and role2 in client1 in the realm
+})->middleware('resource_access:client1,role1,role2');
+```
 
 ## Custom User
 

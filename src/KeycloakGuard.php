@@ -82,7 +82,6 @@ class KeycloakGuard implements Guard
         // 2. Check if the access token is valid
         if (!$this->tokenChecker->checkToken($accessToken)) {
             // 3. If it's not, try to refresh it
-            // TODO refresh token
             if (!$this->refreshToken()) {
                 // 4. If this fails we quit
                 $this->tokenStorage->empty();
