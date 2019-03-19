@@ -122,30 +122,25 @@ class KeycloakGuard implements Guard
      */
     public function validate(array $credentials = [])
     {
-        if (!array_key_exists('token', $credentials)) {
-            return false;
+        if (array_key_exists('id_token', $credentials)) {
+            if (!$this->tokenChecker->checkIdToken($credentials['id_token'])) {
+                return false;
+            }
         }
 
-        $token = $credentials['token'];
-
-        return $this->checkToken($token);
-    }
-
-    /**
-     * Check if the token is valid
-     *
-     * @param $token
-     * @return bool
-     */
-    protected function checkToken($token)
-    {
-        if ($this) {
-            return true;
+        if (array_key_exists('token', $credentials)) {
+            if (!$this->tokenChecker->checkToken($credentials['token'])) {
+                return false;
+            }
         }
 
-        $this->tokenStorage->empty();
+        if (array_key_exists('access_token', $credentials)) {
+            if (!$this->tokenChecker->checkToken($credentials['access_token'])) {
+                return false;
+            }
+        }
 
-        return false;
+        return true;
     }
 
     /**
@@ -177,10 +172,10 @@ class KeycloakGuard implements Guard
 
         $tokens = $this->gateway->getRefreshTokenResponse($refreshToken);
 
-//        $this->tokenStorage->storeAll();
+        $this->tokenStorage->storeAccessToken($tokens['access_token']);
+        $this->tokenStorage->storeRefreshToken($tokens['refresh_tokens']);
 
-        // TODO: Implement refresh tokens
-        return false;
+        return true;
     }
 
 }
