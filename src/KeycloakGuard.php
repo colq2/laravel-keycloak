@@ -159,7 +159,6 @@ class KeycloakGuard implements Guard
     /**
      * Try to refresh tokens
      *
-     * @param $accessToken
      * @return bool
      */
     private function refreshToken()
@@ -173,7 +172,7 @@ class KeycloakGuard implements Guard
         $tokens = $this->gateway->getRefreshTokenResponse($refreshToken);
 
         $this->tokenStorage->storeAccessToken($tokens['access_token']);
-        $this->tokenStorage->storeRefreshToken($tokens['refresh_tokens']);
+        $this->tokenStorage->storeRefreshToken($tokens['refresh_token']);
 
         return true;
     }
