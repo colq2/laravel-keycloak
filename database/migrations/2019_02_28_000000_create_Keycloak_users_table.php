@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateKeycloakUsersTable extends Migration
 {
@@ -20,6 +20,7 @@ class CreateKeycloakUsersTable extends Migration
             $table->string('email')->nullable();
             $table->string('name')->nullable();
             $table->string('picture')->nullable();
+            $table->json('roles')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

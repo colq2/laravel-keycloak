@@ -1,21 +1,23 @@
 <?php
 
-namespace colq2\Keycloak\Test\Integration;
+namespace colq2\Tests\Keycloak\Integration;
 
 use colq2\Keycloak\Contracts\Authenticator;
 use colq2\Keycloak\Contracts\TokenStorage;
-use colq2\Keycloak\KeycloakAuthenticator;
-use colq2\Keycloak\KeycloakProvider;
-use colq2\Keycloak\SocialiteOIDCUser;
-use colq2\Tests\Keycloak\Integration\TestCase;
-use colq2\Tests\Keycloak\Stubs\KeycloakProviderStub;
+use colq2\Keycloak\Contracts\UserService;
+use colq2\Keycloak\DefaultAuthenticator;
 use colq2\Tests\Keycloak\Stubs\KeycloakUser;
+use colq2\Tests\Keycloak\Stubs\StubAuthenticator;
 use colq2\Tests\Keycloak\Traits\FakeGateway;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Foundation\Testing\TestResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use League\OAuth2\Client\Token\AccessToken;
 use Mockery;
+use Stevenmaguire\OAuth2\Client\Provider\Keycloak;
+use Stevenmaguire\OAuth2\Client\Provider\Keycloak as KeycloakProvider;
+use Stevenmaguire\OAuth2\Client\Provider\KeycloakResourceOwner;
 
 class AuthenticatorTest extends TestCase
 {
@@ -50,26 +52,19 @@ class AuthenticatorTest extends TestCase
 
     public function testHandleRedirect()
     {
-        // Create Request to redirect
-        $request = Request::create('foo');
-        $request->setLaravelSession($session = Mockery::mock(Session::class));
-        $session->shouldReceive('put')
-            ->once();
-
-        $provider = new KeycloakProviderStub($request, 'client_id', 'client_secret', 'http://localhost/redirect');
-
-        $response = $provider->redirect();
+        $response = $this->authenticator->handleRedirect();
         $this->assertInstanceOf(RedirectResponse::class, $response);
 
         $response = new TestResponse($response);
-        $response->assertSee('client_id');
-        $response->assertSee(urlencode('http://localhost/redirect'));
+        $response->assertSee(config('keycloak.client_id'));
+        $response->assertSee(config('keycloak.base_url'));
         $response->assertStatus(302);
 
     }
 
     public function testCallbackCreatesAndAuthenticatesUsesAndStoresTokens()
     {
+
         $userArray = [
             'sub' => 'subject-id',
             'preferred_username' => 'johndoe',
@@ -77,19 +72,36 @@ class AuthenticatorTest extends TestCase
             'email' => 'john.doe@example.com',
             'picture' => '',
         ];
-        $socialiteUser = new SocialiteOIDCUser();
-        $socialiteUser->setRaw($userArray)
-            ->map($userArray);
+        $resourceOwner = new KeycloakResourceOwner($userArray);
+
+        $accessToken = new AccessToken([
+            'access_token' => 'access_token',
+            'refresh_token' => 'refresh_token',
+            'resource_owner_id' => 1,
+            'expires_in' => 300
+        ]);
 
         $provider = Mockery::mock(KeycloakProvider::class);
-        $provider->shouldReceive('user')
-            ->andReturn($socialiteUser);
+        $provider->shouldReceive('getAccessToken')
+            ->with('authorization_code', ['code' => 'code'])
+            ->once()
+            ->andReturn($accessToken);
 
-        socialite()->extend('keycloak', function () use ($provider) {
-            return $provider;
-        });
+        $provider->shouldReceive('getResourceOwner')
+            ->with($accessToken)
+            ->andReturn($resourceOwner);
 
-        $authenticator = $this->app->make(KeycloakAuthenticator::class);
+        $state = 'state';
+        $this->session([DefaultAuthenticator::STATE_KEY => $state]);
+        $request = Request::create('/callback', 'GET', ['code' => 'code', 'state' => $state]);
+        $request->setLaravelSession(session());
+        $authenticator = new StubAuthenticator(
+            app()->make(UserService::class),
+            app()->make(TokenStorage::class),
+            $provider,
+            app()->make(Session::class),
+            $request
+        );
 
         $authenticator->handleCallback();
 
@@ -128,30 +140,5 @@ class AuthenticatorTest extends TestCase
 
         // Assert that user is authenticated
         $this->assertAuthenticatedAs($keycloakUser, 'keycloak');
-    }
-
-    public function testAllowAddCustomScopes()
-    {
-        // Create Request to redirect
-        $request = Request::create('foo');
-        $request->setLaravelSession($session = Mockery::mock(Session::class));
-        $session->shouldReceive('put')
-            ->once();
-
-        $provider = new KeycloakProviderStub($request, 'client_id', 'client_secret', 'redirect');
-
-        // Socialite should return this provider
-        socialite()->extend('keycloak', function () use ($provider) {
-            return $provider;
-        });
-
-        $this->assertSame($provider, socialite()->driver('keycloak'));
-
-        $authenticator = $this->app->make(Authenticator::class);
-
-        $response = $authenticator->withScopes(['email', 'profile'])->handleRedirect();
-        $response = new TestResponse($response);
-        $response->assertSee('email');
-        $response->assertSee('profile');
     }
 }

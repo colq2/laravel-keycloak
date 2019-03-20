@@ -7,4 +7,5 @@ return [
     'redirect' => env('KEYCLOAK_REDIRECT'),
     'realm' => env('KEYCLOAK_REALM'),
     'base_url' => env('KEYCLOAK_BASE_URL'),
+    'public_key' => env('KEYCLOAK_PUBLIC_KEY')
 ];

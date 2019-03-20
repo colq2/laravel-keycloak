@@ -3,20 +3,20 @@
 namespace colq2\Keycloak\Examples;
 
 use colq2\Keycloak\KeycloakUserService;
-use colq2\Keycloak\SocialiteOIDCUser;
 
 class CustomUserService extends KeycloakUserService
 {
 
-    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user)
+    /**
+     * @param array $user
+     * @return array|\colq2\Keycloak\KeycloakUser
+     */
+    public function mapUser(array $user): array
     {
-        $keycloakUser = (array) $user;
+        // Do whatever you need
+        $user['username'] = $user['preferred_username'];
 
-        // DO whatever you need
-
-        // For example
-        $keycloakUser['username'] = $keycloakUser['preferred_username'];
-
-        return $keycloakUser;
+        // And return it
+        return $user;
     }
 }

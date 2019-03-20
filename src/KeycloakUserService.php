@@ -59,13 +59,9 @@ class KeycloakUserService implements UserService
      */
     public function getKeycloakUserByToken($token): KeycloakUser
     {
-        // get socialite user
-        $socialiteUser = $this->mapUserArrayToSocialiteUser($this->getUserArrayByToken($token));
+        $user = $this->getUserArrayByToken($token);
 
-        // transform to KeycloakUser
-        $user = $this->updateOrCreate($socialiteUser);
-
-        return $user;
+        return $this->updateOrCreate($user);
     }
 
     /**
@@ -81,29 +77,35 @@ class KeycloakUserService implements UserService
     }
 
     /**
-     * Transform claims to a socialite user
+     * Transform claims
      *
      * @param array $user
-     * @return \colq2\Keycloak\SocialiteOIDCUser
+     * @return KeycloakUser
      */
-    public function mapUserArrayToSocialiteUser(array $user)
+    public function mapUserArrayToKeycloakUser(array $user)
     {
-        return (new SocialiteOIDCUser)->setRaw($user)
-            ->map($user);
+        $keycloakUser = $this->createModel();
+        $keycloakUser->setRawAttributes($user, true);
+
+        return $keycloakUser;
     }
 
     /**
-     * @param SocialiteOIDCUser $user
+     * Map user
+     *
+     * @param array $user
      * @return array
      */
-    public function mapSocialiteUserToKeycloakUser(SocialiteOIDCUser $user)
+    public function mapUser(array $user): array
     {
-        $keycloakUser = (array) $user;
+        $user['username'] = $user['preferred_username'];
 
-        // We rename preferred_username to username
-        $keycloakUser['username'] = $keycloakUser['preferred_username'];
+        $user['roles'] = [
+            'realm_access' => Arr::get($user, 'realm_access', []),
+            'resource_access' => Arr::get($user, 'resource_access', [])
+        ];
 
-        return $keycloakUser;
+        return $user;
     }
 
     /**
@@ -114,7 +116,7 @@ class KeycloakUserService implements UserService
      */
     public function getClaimsFromToken($token): array
     {
-        if (! $token instanceof Token) {
+        if (!$token instanceof Token) {
             $token = (new Parser)->parse($token);
         }
 
@@ -148,51 +150,51 @@ class KeycloakUserService implements UserService
     }
 
     /**
-     * Find a given user provided by Socialite and update itx
+     * Find a given user and update it
      *
-     * @param SocialiteOIDCUser $socialiteUser
+     * @param array $user
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function updateOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser
+    public function updateOrCreate(array $user): KeycloakUser
     {
         // Update user (maybe the attribute had changed)
-        $user = $this->createModel()
+        $keycloakUser = $this->createModel()
             ->newQuery()
             ->updateOrCreate([
                 // The unique identifier is the subject, we
                 // have to find the user by it
                 // TODO: Make this editable
-                'sub' => $socialiteUser->getId()
-            ], $this->mapSocialiteUserToKeycloakUser($socialiteUser));
+                'sub' => $user['sub']
+            ], $this->mapUser($user));
 
-        $user->save();
+        $keycloakUser->save();
 
-        return $user;
+        return $keycloakUser;
     }
 
     /**
-     * @param SocialiteOIDCUser $socialiteUser
+     * @param array $user
      * @return \colq2\Keycloak\KeycloakUser
      */
-    public function findOrCreate(SocialiteOIDCUser $socialiteUser): KeycloakUser
+    public function findOrCreate(array $user): KeycloakUser
     {
-        $user = $this->createModel()
+        $keycloakUser = $this->createModel()
             ->newQuery()
             ->firstOrCreate([
-                'sub' => $socialiteUser->getId(),
-            ], $this->mapSocialiteUserToKeycloakUser($socialiteUser));
+                'sub' => $user['sub'],
+            ], $this->mapUser($user));
 
-        return $user;
+        return $keycloakUser;
     }
 
     /**
      * Create a new instance of the model.
      *
-     * @return \Illuminate\Database\Eloquent\Model
+     * @return KeycloakUser Model
      */
     protected function createModel()
     {
-        $class = '\\'.ltrim($this->model, '\\');
+        $class = '\\' . ltrim($this->model, '\\');
 
         return new $class;
     }

@@ -3,7 +3,7 @@
 namespace colq2\Tests\Keycloak\Unit;
 
 use colq2\Keycloak\Contracts\Authenticator;
-use colq2\Keycloak\KeycloakAuthenticator;
+use colq2\Keycloak\DefaultAuthenticator;
 use colq2\Keycloak\KeycloakGuard;
 use colq2\Tests\Keycloak\Stubs\KeycloakUser;
 use colq2\Tests\Keycloak\TestCase;
@@ -12,7 +12,7 @@ use Mockery;
 class AuthenticatorTest extends TestCase
 {
     /**
-     * @var KeycloakAuthenticator $authenticator
+     * @var DefaultAuthenticator $authenticator
      */
     private $authenticator;
 
