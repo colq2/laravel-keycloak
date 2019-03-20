@@ -65,7 +65,7 @@ class OnlineRealmKeyFetcher implements KeyFetcher
     protected function putToCache(string $publicKey)
     {
         try {
-            cache()->put(self::PUBLIC_KEY_CACHE_NAME, $publicKey, 60 * 4);
+            cache()->put(self::PUBLIC_KEY_CACHE_NAME, $publicKey, 60 * 60 * 4);
         } catch (\Exception $e) {
             return;
         }

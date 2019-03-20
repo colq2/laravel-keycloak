@@ -6,7 +6,7 @@ use colq2\Tests\Keycloak\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

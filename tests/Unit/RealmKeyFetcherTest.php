@@ -16,7 +16,7 @@ class RealmKeyFetcherTest extends TestCase
      */
     private $fetcher;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

@@ -8,12 +8,15 @@ use colq2\Tests\Keycloak\Factories\KeyPairFactory;
 use colq2\Tests\Keycloak\Stubs\KeycloakUser;
 use colq2\Tests\Keycloak\Traits\FakeGateway;
 use Dotenv\Dotenv;
+use Dotenv\Environment\Adapter\EnvConstAdapter;
+use Dotenv\Environment\Adapter\ServerConstAdapter;
+use Dotenv\Environment\DotenvFactory;
 use Illuminate\Support\Arr;
 use Lcobucci\JWT\Builder;
 
 class TestCase extends \Orchestra\Testbench\Dusk\TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -42,9 +45,11 @@ class TestCase extends \Orchestra\Testbench\Dusk\TestCase
      */
     protected function getEnvironmentSetUp($app)
     {
-        $dotenv = new Dotenv(__DIR__.'/..');
+        $factory = new DotenvFactory([new EnvConstAdapter(), new ServerConstAdapter()]);
 
+        $dotenv = Dotenv::create(__DIR__ . '/..', null, $factory);
         $dotenv->load();
+
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [

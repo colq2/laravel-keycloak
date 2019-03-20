@@ -33,7 +33,7 @@ class AuthenticatorTest extends TestCase
      */
     private $tokenStorage;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -43,7 +43,7 @@ class AuthenticatorTest extends TestCase
     }
 
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 

@@ -22,7 +22,7 @@ class KeycloakGatewayTest extends TestCase
     private $authenticator;
 
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

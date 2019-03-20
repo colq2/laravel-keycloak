@@ -16,14 +16,14 @@ class AuthenticatorTest extends TestCase
      */
     private $authenticator;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         $this->authenticator = $this->app->make(Authenticator::class);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();

@@ -9,7 +9,6 @@ use colq2\Tests\Keycloak\Factories\KeyPairFactory;
 use colq2\Tests\Keycloak\TestCase;
 use colq2\Tests\Keycloak\Traits\FakeGateway;
 use Lcobucci\JWT\Token;
-use Mockery\Generator\StringManipulation\Pass\RemoveBuiltinMethodsThatAreFinalPass;
 
 class TokenCheckerTest extends TestCase
 {
@@ -46,7 +45,7 @@ class TokenCheckerTest extends TestCase
     /**
      * Set up Tests
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
