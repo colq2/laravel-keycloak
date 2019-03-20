@@ -82,7 +82,6 @@ class KeycloakGuard implements Guard
         // 2. Check if the access token is valid
         if (!$this->tokenChecker->checkToken($accessToken)) {
             // 3. If it's not, try to refresh it
-            // TODO refresh token
             if (!$this->refreshToken()) {
                 // 4. If this fails we quit
                 $this->tokenStorage->empty();
@@ -100,6 +99,7 @@ class KeycloakGuard implements Guard
         // 6. If an id token was found, get a user by this token
         // 7. Else get a user by the access token
         if (empty($idToken)) {
+            // TODO: Split into get User by decoded token and get User from UserEndpoint
             $user = $this->userService->getKeycloakUserByToken($accessToken);
         } else {
             if (!$this->tokenChecker->checkIdToken($idToken)) {
