@@ -1,5 +1,5 @@
 # IMPORTANT
-This is going to be an openid-connect client for laravel to login with keycloak.
+This is going to be an easy-to-use keycloak adapter for laravel.
 
 This is still in development and not ready for production.
 
@@ -8,10 +8,6 @@ Feel free to contribute to this.
 # To do
 [ ] Allow different user storage's like Cache, Session, Eloquent, Database etc.
 
-[ ] Write Readme
-
-[ ] Upload to packagist
-
 # Installation
 `composer require colq2/laravel-keycloak`
 
@@ -19,7 +15,7 @@ Publish config and migrations
 
 `php artisan vendor:publish --provider=colq2\Keycloak\KeycloakServiceProvider`
 
-This project redefines the user model and migrations. There is no need for password reset table. Furthermore we need another properties on the user:
+This project redefines the user model and migrations. There is no need for password reset table. Furthermore we need another properties on the user (This are mostly the openid-connect defined properties):
 * id
 * sub
 * username
