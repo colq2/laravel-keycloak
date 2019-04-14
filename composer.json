@@ -52,10 +52,7 @@
     "laravel": {
       "providers": [
         "colq2\\Keycloak\\KeycloakServiceProvider"
-      ],
-      "aliases": {
-        "Debugbar": "Barryvdh\\Debugbar\\Facade"
-      }
+      ]
     }
   },
   "minimum-stability": "dev",
